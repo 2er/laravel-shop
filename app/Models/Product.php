@@ -19,4 +19,14 @@ class Product extends Model
     {
         return $this->hasMany(ProductSku::class);
     }
+
+    public function getImageUrlAttribute()
+    {
+        // 如果 image 字段本身就已经是完整的 url 就直接返回
+        if (starts_with($this->attributes['image'], ['http'])) {
+            return $this->attributes['image'];
+        }
+
+        return \Storage::disk('public')->url($this->attributes['image']);
+    }
 }
