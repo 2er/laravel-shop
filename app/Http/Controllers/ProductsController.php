@@ -9,8 +9,37 @@ class ProductsController extends Controller
 {
     public function index (Request $request)
     {
-        $products = Product::where('on_sale', true)->paginate(16);
+        // 创建一个查询构造器
+        $builder = Product::query()->where('on_sale', true);
+        // 判断是否有search参数提交
+        if ($search = $request->input('search', '')) {
+            $like = '%'.$search.'%';
+            // 模糊搜索商品标题、商品详情、SKU 标题、SKU描述
+            $builder->where(function ($query) use ($like) {
+                $query->where('title', 'like', $like)
+                    ->orWhere('description', 'like', $like)
+                    ->orWhereHas('skus', function ($query) use ($like) {
+                        $query->where('title', 'like', $like)
+                            ->orWhere('description', 'like', $like);
+                    });
+            });
+        }
 
-        return view('products.index', compact('products'));
+        // 是否有提交 order 参数，如果有就赋值给 $order 变量
+        if ($order = $request->input('order', '')) {
+            // 是否以 _desc 或者 _asc 结尾
+            if (preg_match('/^(.+)_(desc|asc)$/', $order, $m)) {
+                // 如果开头是这 3 个字符串之一，则是合法的排序
+                if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
+                    // 根据传入的排序值来构造排序参数
+                    $builder->orderBy($m[1], $m[2]);
+                }
+            }
+        }
+        $products = $builder->paginate(16);
+
+        $filters = compact('search', 'order');
+
+        return view('products.index', compact('products', 'filters'));
     }
 }
