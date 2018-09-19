@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', '新增收货地址')
+@section('title', ($address->id ? '修改' : '新增').'收货地址')
 
 @section('content')
     <div class="row">
@@ -7,7 +7,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h2 class="text-center">
-                        新增收货地址
+                        {{($address->id ? '修改' : '新增').'收货地址'}}
                     </h2>
                 </div>
                 <div class="panel-body">
@@ -23,11 +23,14 @@
                         </div>
                     @endif
                     <!-- 输出后端报错结束 -->
-                    <form class="form-horizontal" role="form" action="{{ route('user_addresses.store') }}" method="post">
+                    <form class="form-horizontal" role="form" action="{{ $address->id ? route('user_addresses.update', ['user_address'=>$address->id]) : route('user_addresses.store') }}" method="post">
+                        @if($address->id)
+                        {{method_field('PUT')}}
+                        @endif
                         <!-- 引入 csrf token 字段 -->
                         {{ csrf_field() }}
                         <!-- 注意这里多了 @change -->
-                        <user-addresses-create-and-edit></user-addresses-create-and-edit>
+                        <user-addresses-create-and-edit :init-value="{{ json_encode([$address->province, $address->city, $address->district]) }}"></user-addresses-create-and-edit>
                         <div class="form-group">
                             <label class="control-label col-sm-2">详细地址</label>
                             <div class="col-sm-9">

@@ -17,6 +17,7 @@ class UserAddressRequest extends Request
 
         switch ($this->method()) {
             case 'POST':
+            case 'PUT':
                $rules =  [
                    'province'      => 'required',
                    'city'          => 'required',
