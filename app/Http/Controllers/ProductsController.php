@@ -44,12 +44,37 @@ class ProductsController extends Controller
         return view('products.index', compact('products', 'filters'));
     }
 
-    public function show (Product $product)
+    public function show (Request $request, Product $product)
     {
         // 判断商品是否上架
         if (!$product->on_sale) {
             throw new InvalidRequestException('商品未上架');
         }
-        return view('products.show', compact('product'));
+
+        $favored = false;
+        if ($request->user())
+        {
+            if ($request->user()->favoriteProducts()->find($product->id)) {
+                $favored = true;
+            }
+        }
+
+        return view('products.show', compact('product', 'favored'));
+    }
+
+    public function favor (Request $request, Product $product)
+    {
+        if ($request->user()->favoriteProducts()->find($product->id)) {
+            return [];
+        }
+
+        $request->user()->favoriteProducts()->attach($product->id);
+        return [];
+    }
+
+    public function disfavor (Request $request, Product $product)
+    {
+        $request->user()->favoriteProducts()->detach($product->id);
+        return [];
     }
 }
