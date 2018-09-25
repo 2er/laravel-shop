@@ -89,4 +89,10 @@ class OrdersController extends Controller
 
         return view('orders.index', compact('orders'));
     }
+
+    public function show (Request $request, Order $order)
+    {
+        $this->authorize('own', $order);
+        return view('orders.show', ['order' => $order->load(['items.product','items.productSku'])]);
+    }
 }
