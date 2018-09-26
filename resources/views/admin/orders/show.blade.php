@@ -49,6 +49,8 @@
             <!-- 订单发货开始 -->
             <!-- 如果订单未发货，展示发货表单 -->
             @if($order->ship_status === \App\Models\Order::SHIP_STATUS_PENDING)
+                <!-- 加上这个判断条件 -->
+                @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_SUCCESS)
                 <tr>
                     <td colspan="4">
                         <form action="{{ route('admin.orders.ship', [$order->id]) }}" method="post" class="form-inline">
@@ -76,6 +78,7 @@
                         </form>
                     </td>
                 </tr>
+                @endif
             @else
                 <!-- 否则展示物流公司和物流单号 -->
                 <tr>
@@ -106,6 +109,7 @@
 
 <script>
     $(document).ready(function() {
+
         // 不同意 按钮的点击事件
         $('#btn-refund-disagree').click(function() {
             // 注意：Laravel-Admin 的 swal 是 v1 版本，参数和 v2 版本的不太一样
@@ -144,6 +148,48 @@
                             type: 'success'
                         }, function() {
                             // 用户点击 swal 上的 按钮时刷新页面
+                            location.reload();
+                        });
+                    }
+                });
+            });
+        });
+
+        // 同意按钮的点击事件
+        $('#btn-refund-agree').click(function() {
+            swal({
+                title: '确认要将款项退还给用户？',
+                type: 'warning',
+                showCancelButton: true,
+                closeOnConfirm: false,
+                confirmButtonText: "确认",
+                cancelButtonText: "取消",
+            }, function(ret){
+                // 用户点击取消，不做任何操作
+                if (!ret) {
+                    return;
+                }
+                $.ajax({
+                    url: '{{ route('admin.orders.handle_refund', [$order->id]) }}',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        agree: true, // 代表同意退款
+                        _token: LA.token,
+                    }),
+                    contentType: 'application/json',
+                    success: function (data) {
+                        swal({
+                            title: '操作成功',
+                            type: 'success'
+                        }, function() {
+                            location.reload();
+                        });
+                    },
+                    error: function (data) {
+                        swal({
+                            title: '退款失败',
+                            type: 'error'
+                        }, function() {
                             location.reload();
                         });
                     }
