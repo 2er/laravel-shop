@@ -24,19 +24,13 @@ class OrdersController extends Controller
         });
     }
 
-    /**
-     * Show interface.
-     *
-     * @param mixed   $id
-     * @param Content $content
-     * @return Content
-     */
-    public function show($id, Content $content)
+    public function show(Order $order)
     {
-        return $content
-            ->header('Detail')
-            ->description('description')
-            ->body($this->detail($id));
+        return Admin::content(function (Content $content) use ($order) {
+            $content->header('订单详情');
+            // body 方法可以接受 Laravel 的视图作为参数
+            $content->body(view('admin.orders.show', compact('order')));
+        });
     }
 
     /**
